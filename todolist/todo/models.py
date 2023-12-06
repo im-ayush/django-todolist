@@ -7,7 +7,7 @@ class ToDo(models.Model):
     description = models.CharField(null=True, blank=True, max_length=50)
     is_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
-    deadline = models.DateTimeField(default=timezone.now)
+    deadline = models.DateTimeField()
 
     def __str__(self):
         return self.task

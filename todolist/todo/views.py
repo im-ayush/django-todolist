@@ -1,48 +1,95 @@
 from django.shortcuts import render, redirect
 from .models import ToDo
-from .serializers import TodoSerializer
-from rest_framework import viewsets
+# from .serializers import TodoSerializer
+
+# from rest_framework import viewsets
 from django.http import JsonResponse
+from datetime import datetime
+# from pprint import pprint 
 
 # Create your views here.
 def show(flag=0):
-    if flag==1:
-        objs = list(ToDo.objects.all().filter(is_completed=False).order_by('deadline'))
-        objs = objs + list(ToDo.objects.all().filter(is_completed=True).order_by('deadline'))
-    elif flag==2:
-        objs = list(ToDo.objects.all().filter(is_completed=False).order_by('created_at'))
-        objs = objs + list(ToDo.objects.all().filter(is_completed=True).order_by('created_at'))
+    if flag == 1:
+        # sort by deadline
+        objs = list(ToDo.objects.all().filter(
+            is_completed=False).order_by("deadline"))
+        objs = objs + list(
+            ToDo.objects.all().filter(is_completed=True).order_by("deadline")
+        )
+    # sort by created_at
+    elif flag == 2:
+        objs = list(
+            ToDo.objects.all().filter(is_completed=False).order_by("created_at")
+        )
+        objs = objs + list(
+            ToDo.objects.all().filter(is_completed=True).order_by("created_at")
+        )
     else:
-        objs = list(ToDo.objects.all().filter(is_completed=False))
-        objs = objs + list(ToDo.objects.all().filter(is_completed=True))
+        objs = list(
+            ToDo.objects.all().filter(is_completed=False)
+            )
+        objs = objs + list(
+            ToDo.objects.all().filter(is_completed=True)
+            )
+    # for obj in objs:
+    #     print(vars(obj))
     return objs
 
+
 def show_by_deadline(request):
-    return render(request, 'todo/index.html', context={'list':show(flag=1)})
+    return render(
+        request, 
+        "todo/index.html", 
+        context={"list": show(flag=1)}
+        )
+
 
 def show_by_created_at(request):
-    return render(request, 'todo/index.html', context={'list':show(flag=2)})
+    return render(
+        request, 
+        "todo/index.html", 
+        context={"list": show(flag=2)}
+    )
+
 
 def show_all(request):
-    return render(request, 'todo/index.html', context={'list':show()})
+    
+    return render(
+        request, 
+        "todo/index.html", 
+        context={"list": show()}
+        )
 
 
 def add(request):
     if request.method == "POST":
-        print(request.POST)
-        obj = ToDo(task = request.POST["taskname"],
-                    description = request.POST["description"])
+        # print(request.POST)
+        obj = ToDo(
+            task = request.POST["taskname"], 
+            description = request.POST["description"],
+            deadline = datetime.fromisoformat(
+                request.POST["deadline"]
+                )
+        )
         obj.save()
+        print(request.POST["deadline"])
+        print(datetime.fromisoformat(
+            request.POST["deadline"]
+        ))
         return redirect(show_all)
+
 
 def update_task(request):
     if request.method == "POST":
-        obj = ToDo.objects.get(id = request.POST['id'])
+        obj = ToDo.objects.get(id=request.POST["id"])
 
-        obj.task = request.POST['taskname']
-        obj.description = request.POST.get('description', "desc_def")
+        obj.task = request.POST["taskname"]
+        obj.description = request.POST.get("description", "desc_def")
+        obj.deadline = datetime.fromisoformat(
+            request.POST["deadline"]
+            )
 
-        if request.POST.get('completed', False) == 'on':
+        if request.POST.get("completed", False) == "on":
             obj.is_completed = True
         else:
             obj.is_completed = False
@@ -50,10 +97,12 @@ def update_task(request):
         obj.save()
         return redirect(show_all)
 
+
 def delete(request, id):
     if request.method == "GET":
-        ToDo.objects.get(id = id).delete()
+        ToDo.objects.get(id=id).delete()
         return redirect(show_all)
+
 
 def clear(request):
     if request.method == "GET":
